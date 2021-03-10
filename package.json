@@ -1,0 +1,23 @@
+{
+  "name": "articles",
+  "version": "1.0.0",
+  "description": "技術記事 ==",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AtsushiKitano/articles.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AtsushiKitano/articles/issues"
+  },
+  "homepage": "https://github.com/AtsushiKitano/articles#readme",
+  "dependencies": {
+    "zenn-cli": "^0.1.75"
+  }
+}
