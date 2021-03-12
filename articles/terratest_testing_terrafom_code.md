@@ -118,6 +118,32 @@ func TestHelloWorld(t *testing.T) {
 ![system_arch](https://storage.googleapis.com/zenn-user-upload/g8hbgck0z52xngmoevo1n1fysgl6)
 
 このシステムは、GCP上にVPCネットワークを作成し、GCEを作成し、当該システムにNginxをインストールしたWebシステムです。
-
 テストでは、GCPの設定とWebシステムへの通信を確認するテストを実施します。
 GCPの設定項目およびWebシステムへの通信要件は、以下の通りです。
+
+- VPC ネットワークの設定
+
+| vpc name | subnetwork name | subnetwork region | subnetwork cidr |
+| ---      | ---             | ---               | ---              |
+| sample   | sample          | asia-northeast1   | 192.168.10.0/24  |
+
+- ファイアーフォールの設定
+
+| name           | direction | target                    | source address | priority | rule type | protocol | port      |
+| ---            | ---       | ---                       | ---            | ---      | ---       | ---      | ---       |
+| ingress-sample | INGRESS   | VPC network上のすべてのVM | 0.0.0.0/0      | 1000     | allow     | tcp      | 22,80,443 |
+
+- GCEの設定
+
+| name   | machine type | zone              | subnetwork | tags | boot disk size | mashine image                   |
+| ---    | ---          | ---               | ---        | ---  | ---            | ---                             |
+| sample | f1-micro     | asia-northeast1-b | sample     | -    | 20             | ubuntu-os-cloud/ubuntu-2004-lts |
+
+- ネットワーク疎通の設定
+
+| Web IP address  | access port | HTTP Request | Response Status Code |
+| ---             | ---        | ---          | ---                  |
+| GCEのIPアドレス | 80         | GET          | 200                  |
+
+これらのシステムを構築するTerraformコードは、 [当該コード](https://github.com/AtsushiKitano/terratest_sample/blob/master/src/main.tf) となります。
+ここで利用しているTerraformモジュールは、 [こちらのモジュール](https://github.com/AtsushiKitano/assets/tree/master/terraform/gcp/modules) を参照しています。
