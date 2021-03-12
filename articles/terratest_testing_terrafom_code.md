@@ -115,7 +115,7 @@ func TestHelloWorld(t *testing.T) {
 ## Webシステムのテスト
 次に、下記のような構成のシステムについてテストをします。
 
-![system_arch](./images/terratest_system_arch.png)
+![system_arch](https://storage.googleapis.com/zenn-user-upload/g8hbgck0z52xngmoevo1n1fysgl6)
 
 このシステムは、GCP上にVPCネットワークを作成し、GCEを作成し、当該システムにNginxをインストールしたWebシステムです。
 
