@@ -102,7 +102,7 @@ func TestHelloWorld(t *testing.T) {
     t.Parallel()
 
     terraformOption := &terraform.Options{
-        TerraformDir: "./",
+        TerraformDir: ".",
     }
 
     actual := terraform.Output(t, terraformOption, "helloworld")
@@ -112,6 +112,18 @@ func TestHelloWorld(t *testing.T) {
 }
 ```
 
+テストの実行方法は、下記の通りです。
+
+1. Terraformコマンドで、`terraform apply`の実行
+1. go コマンドでTerratestのコードの実行
+
+上記の内容のコマンドは以下の通りです。
+
+```
+terraform apply
+go test -v
+```
+
 ## Webシステムのテスト
 次に、下記のような構成のシステムについてテストをします。
 
@@ -119,7 +131,7 @@ func TestHelloWorld(t *testing.T) {
 
 このシステムは、GCP上にVPCネットワークを作成し、GCEを作成し、当該システムにNginxをインストールしたWebシステムです。
 テストでは、GCPの設定とWebシステムへの通信を確認するテストを実施します。
-GCPの設定項目およびWebシステムへの通信要件は、以下の通りです。
+GCPの設定項目およびWebシステムへの通信要件は、以下の通りで以下の内容をテストします。
 
 - VPC ネットワークの設定
 
@@ -131,7 +143,7 @@ GCPの設定項目およびWebシステムへの通信要件は、以下の通�
 
 | name           | direction | target                    | source address | priority | rule type | protocol | port      |
 | ---            | ---       | ---                       | ---            | ---      | ---       | ---      | ---       |
-| ingress-sample | INGRESS   | VPC network上のすべてのVM | 0.0.0.0/0      | 1000     | allow     | tcp      | 22,80,443 |
+| ingress-sample | INGRESS   | VPC network上のすべてのVM | 0.0.0.0/0      | 1000     | allow     | tcp      | 80 |
 
 - GCEの設定
 
@@ -147,3 +159,10 @@ GCPの設定項目およびWebシステムへの通信要件は、以下の通�
 
 これらのシステムを構築するTerraformコードは、 [当該コード](https://github.com/AtsushiKitano/terratest_sample/blob/master/src/main.tf) となります。
 ここで利用しているTerraformモジュールは、 [こちらのモジュール](https://github.com/AtsushiKitano/assets/tree/master/terraform/gcp/modules) を参照しています。
+
+Terraformの構築した内容をテストするテストは、[当該ディレクトリ内のコード](https://github.com/AtsushiKitano/terratest_sample/blob/master/test)です。
+
+# さいごに
+Terratestを使ったTerraformの設定内容のテスト方法をNginxのシステムをテストする例を使い説明しました。TerratestはGoのライブラリでありかつ、HTTPリクエストを実行するライブラリを提供しているため、ユニットテスト以上の機能テストも実施可能です。
+Terraformの設定内容のテストは、outputの値を参照して実施するため、Terraformコードにテストすべき項目を記載する必要があります。また、Terratestのライブラリの制約により、outputを整形しないとうまくテストできません。
+ユニットテスト以外にも使える点としては、その他のインフラのテストツールより優れていますが、Terraformのstatefileを参照している点や、出力の制約があるために導入にはその点を考慮する必要があります。
