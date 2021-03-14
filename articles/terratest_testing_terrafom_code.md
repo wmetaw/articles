@@ -3,7 +3,7 @@ title: TerratestによるTerraformコードの単体テスト
 emoji: 📝
 type: tech
 topics: [Terraform, gcp, CICD]
-published: false
+published: true
 ---
 
 # 概要
