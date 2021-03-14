@@ -161,7 +161,7 @@ GCPの設定項目およびWebシステムへの通信要件は、以下の通�
 | ---             | ---        | ---          | ---                  |
 | GCEのIPアドレス | 80         | GET          | 200                  |
 
-これらのシステムの構築するTerraformコードおよびTerratestのコードは、この[リポジトリ](https://github.com/AtsushiKitano/terratest_sample/blob/master)を参照してください。
+これらのシステムの構築するTerraformコードおよびTerratestのコードは、この[リポジトリ](https://github.com/AtsushiKitano/terratest_sample)を参照してください。
 
 リポジトリのディレクトリ構成は、以下の通りです。
 
