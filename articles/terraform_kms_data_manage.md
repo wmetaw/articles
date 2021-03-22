@@ -1,14 +1,14 @@
 ---
-title: Terraformのkmsリソースによるシークレット情報の取り扱い
+title: Terraformでの秘匿化情報の取り扱い
 emoji: 🔒
 type: tech
-topics: [Terraform, gcp, CICD, AWS]
+topics: [Terraform, gcp,]
 published: false
 ---
 
 # 要約
-Terraformでシークレット情報をkmsリソースを使い取り扱う方法について。
-実行方法は以下の通りです。
+GCP内でTerraformで秘匿情報を取り扱う方法について。
+
 
 1. 各種サービスでKMSでの鍵の作成
 1. 鍵で秘匿したい情報の暗号化
