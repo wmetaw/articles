@@ -415,9 +415,11 @@ gcloud compute disks describe --zone=asia-northeast1-b sample --format=yaml > $C
 
 ```
 # coding: utf-8
+
 network_expected_info = yaml(content: inspec.profile.file("network.yaml")).params
 gce_expected_info = yaml(content: inspec.profile.file("gce.yaml")).params
 project_id = ENV["TF_VAR_project"]
+
 
 control "network" do
   title "vpc,subnetwork,firewallの設定"
@@ -426,37 +428,57 @@ control "network" do
   subnetwork_expected = network_expected_info["subnetwork"]
   firewall_expected = network_expected_info["firewall"]
 
-  vpc_actual = yaml(content: inspec.profile.file("vpc_actual.yaml")) # SDKで取得した構築したvpc の設定値
-  subnetwork_actual = yaml(content: inspec.profile.file("subnetwork_actual.yaml")) # SDKで取得した構築したサブネットワークの設定値
-  firewall_actual = yaml(content: inspec.profile.file("firewall_actual.yaml")) # SDKで取得した構築したファイアーフォールの設定値
+  vpc_actual = yaml(content: inspec.profile.file("vpc_actual.yaml"))
+  subnetwork_actual = yaml(content: inspec.profile.file("subnetwork_actual.yaml"))
+  firewall_actual = yaml(content: inspec.profile.file("firewall_actual.yaml"))
 
-  describe vpc_actual do
-    its(:name) { should cmp vpc_expected["name"] }
-  end
-
-  describe subnetwork_actual do
-    its(:name) { should cmp subnetwork_expected["name"] }
-    its(:region) { should match subnetwork_expected["region"] }
-    its(:ipCidrRange) { should cmp subnetwork_expected["cidr"] }
-  end
-
-  describe firewall_actual do
-    its(:name) { should cmp firewall_expected["name"] }
-    its(:direction) { should cmp firewall_expected["direction"]}
-    its(:priority) { should cmp firewall_expected["priority"] }
-    its(:sourceRanges) { should be_in firewall_expected["source_ranges"]}
-  end
-
-  firewall_actual.allowed.each do |rule|
-    describe rule["IPProtocol"] do
-      it { should cmp firewall_expected["rule"]["protocol"] }
-    end
-
-    describe rule["ports"] do
-      it { should be_in firewall_expected["rule"]["ports"] }
+  describe "VPC" do
+    it "VPC名が #{vpc_expected["name"]} である" do
+      expect(vpc_actual[:name]).to eq vpc_expected["name"]
     end
   end
 
+  describe "subnetwork" do
+    it "サブネットワーク名が #{subnetwork_expected["name"]} である" do
+      expect(subnetwork_actual[:name]).to eq subnetwork_expected["name"]
+    end
+
+    it "リージョンが #{subnetwork_expected["region"]} である" do
+      expect(subnetwork_actual[:region]).to match subnetwork_expected["region"]
+    end
+
+    it "CIDRが #{subnetwork_expected["cidr"]} であること" do
+      expect(subnetwork_actual[:ipCidrRange]).to eq subnetwork_expected["cidr"]
+    end
+  end
+
+  describe "firewall" do
+    it "ファイアーフォール名が #{firewall_expected["name"]} である" do
+      expect(firewall_actual[:name]).to eq firewall_expected["name"]
+    end
+
+    it "方向が #{firewall_expected["direction"]} である" do
+      expect(firewall_actual[:direction]).to eq firewall_expected["direction"]
+    end
+
+    it "プライオリティが #{firewall_expected["priority"]} である" do
+      expect(firewall_actual[:priority]).to eq firewall_expected["priority"]
+    end
+
+    it "source rangeが #{firewall_expected["source_ranges"]} である" do
+      expect(firewall_actual[:sourceRanges]).to eq firewall_expected["source_ranges"]
+    end
+
+    firewall_actual.allowed.each do |rule|
+      it "プロトコルが #{firewall_expected["rule"]["protocol"]} である" do
+        expect(rule["IPProtocol"]).to eq firewall_expected["rule"]["protocol"]
+      end
+
+      it "許可ポートが #{firewall_expected["rule"]["ports"]} である" do
+        expect(rule["ports"]).to eq firewall_expected["rule"]["ports"]
+      end
+    end
+  end
 end
 
 control "gce" do
@@ -465,32 +487,51 @@ control "gce" do
   instance_expected = gce_expected_info["instance"]
   disk_expected = gce_expected_info["disk"]
 
-  instance_actual = yaml(content: inspec.profile.file("instance_actual.yaml")) # SDKで取得した構築したgceインスタンスの設定値
-  disk_actual = yaml(content: inspec.profile.file("disk_actual.yaml")) # SDKで取得した構築したgceディスクの設定値
+  instance_actual = yaml(content: inspec.profile.file("instance_actual.yaml"))
+  disk_actual = yaml(content: inspec.profile.file("disk_actual.yaml"))
 
-  describe instance_actual do
-    its(:name) { should cmp instance_expected["name"] }
-    its(:zone) { should match instance_expected["zone"] }
-    its(:machineType) { should match instance_expected["machine_type"] }
-  end
+  describe "GCE" do
+    it "インスタンス名が #{instance_expected["name"]} である" do
+      expect(instance_actual[:name]).to eq instance_expected["name"]
+    end
 
-  instance_actual.networkInterfaces.each do |nic|
-    describe nic["subnetwork"] do
-      it { should match instance_expected["interface"]["subnetwork"] }
+    it "zoneが #{instance_expected["zone"]} である" do
+      expect(instance_actual[:zone]).to match instance_expected["zone"]
+    end
+
+    it "マシンタイプが #{instance_expected["machine_type"]} である" do
+      expect(instance_actual[:machineType]).to match instance_expected["machine_type"]
+    end
+
+    instance_actual.networkInterfaces.each do |nic|
+      it "サブネットワークの所属が #{instance_expected["interface"]["subnetwork"]} であること" do
+        expect(nic["subnetwork"]).to match instance_expected["interface"]["subnetwork"]
+      end
+    end
+
+    instance_actual.disks.each do |disk|
+      it "ブートディスク名が#{instance_expected["disk_name"]}である" do
+        expect(disk["source"]).to match match instance_expected["disk_name"]
+      end
     end
   end
 
-  instance_actual.disks.each do |disk|
-    describe disk["source"] do
-      it { should match instance_expected["disk_name"]}
+  describe "GCEDisk" do
+    it "ディスク名が #{disk_expected["name"]} である" do
+      expect(disk_actual[:name]).to eq disk_expected["name"]
     end
-  end
 
-  describe disk_actual do
-    its(:name) { should cmp disk_expected["name"] }
-    its(:zone) { should match disk_expected["zone"] }
-    its(:sourceImage) { should match disk_expected["image"] }
-    its(:sizeGb) { should cmp disk_expected["size"]}
+    it "ゾーンが #{disk_expected["zone"]} である" do
+      expect(disk_actual[:zone]).to match disk_expected["zone"]
+    end
+
+    it "イメージが #{disk_expected["image"]} である" do
+      expect(disk_actual[:sourceImage]).to match disk_expected["image"]
+    end
+
+    it "サイズが#{disk_expected["size"]}GBであること" do
+      expect(disk_actual[:sizeGb]).to eq disk_expected["size"]
+    end
   end
 end
 ```
@@ -505,26 +546,26 @@ Version: (not specified)
 Target:  gcp://764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com
 
   ✔  network: vpc,subnetwork,firewallの設定
-     ✔  YAML content name is expected to cmp == "sample"
-     ✔  YAML content name is expected to cmp == "sample"
-     ✔  YAML content region is expected to match "asia-northeast1"
-     ✔  YAML content ipCidrRange is expected to cmp == "192.168.10.0/24"
-     ✔  YAML content name is expected to cmp == "ingress-sample"
-     ✔  YAML content direction is expected to cmp == "INGRESS"
-     ✔  YAML content priority is expected to cmp == 1000
-     ✔  YAML content sourceRanges is expected to be in "0.0.0.0/0"
-     ✔  tcp is expected to cmp == "tcp"
-     ✔  ["80"] is expected to be in "80"
+     ✔  VPC VPC名が sample である
+     ✔  subnetwork サブネットワーク名が sample である
+     ✔  subnetwork リージョンが asia-northeast1 である
+     ✔  subnetwork CIDRが 192.168.10.0/24 であること
+     ✔  firewall ファイアーフォール名が ingress-sample である
+     ✔  firewall 方向が INGRESS である
+     ✔  firewall プライオリティが 1000 である
+     ✔  firewall source rangeが ["0.0.0.0/0"] である
+     ✔  firewall プロトコルが tcp である
+     ✔  firewall 許可ポートが ["80"] である
   ✔  gce: gce instance, diskの設定
-     ✔  YAML content name is expected to cmp == "sample"
-     ✔  YAML content zone is expected to match "asia-northeast1-b"
-     ✔  YAML content machineType is expected to match "f1-micro"
-     ✔  https://www.googleapis.com/compute/v1/projects/ca-kitano-study-sandbox/regions/asia-northeast1/subnetworks/sample is expected to match "sample"
-     ✔  https://www.googleapis.com/compute/v1/projects/ca-kitano-study-sandbox/zones/asia-northeast1-b/disks/sample is expected to match "sample"
-     ✔  YAML content name is expected to cmp == "sample"
-     ✔  YAML content zone is expected to match "asia-northeast1-b"
-     ✔  YAML content sourceImage is expected to match "ubuntu-2004"
-     ✔  YAML content sizeGb is expected to cmp == 20
+     ✔  GCE インスタンス名が sample である
+     ✔  GCE zoneが asia-northeast1-b である
+     ✔  GCE マシンタイプが f1-micro である
+     ✔  GCE サブネットワークの所属が sample であること
+     ✔  GCE ブートディスク名がsampleである
+     ✔  GCEDisk ディスク名が sample である
+     ✔  GCEDisk ゾーンが asia-northeast1-b である
+     ✔  GCEDisk イメージが ubuntu-2004 である
+     ✔  GCEDisk サイズが20GBであること
 
 
 Profile: Google Cloud Platform Resource Pack (inspec-gcp)
@@ -536,7 +577,8 @@ Target:  gcp://764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercont
 Profile Summary: 2 successful controls, 0 control failures, 0 controls skipped
 Test Summary: 19 successful, 0 failures, 0 skipped
 ```
-テスト対象がyamlファイルの内容なので、先の結果とは違い、`YAML content`のオブジェクトの値がどのようになっているかと出力されます。そのため、出力結果を分かりやすくするように`control`ブロックでまとめる必要がでてきます。
+
+テスト対象がyamlファイルの内容なので、先の結果とは違い、すべてが`YAML content`のオブジェクトの値がどのようになっているかと出力されます。そのため、出力結果を分かりやすくなるように`describe`内の書き方に工夫する必要がでてきます。
 
 # まとめ
 InspecのOSSであるCINCについて、GCP上に構築したシステムをテストしながら説明をしました。実行内容のすべての実行方法は、リポジトリの[cloudbuildディレクトリのcloudbuild.yaml](https://github.com/AtsushiKitano/cinc-test-sample/blob/master/cloudbuild/cloudbuild.yaml)を参照してください。
