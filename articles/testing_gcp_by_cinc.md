@@ -539,7 +539,7 @@ Test Summary: 19 successful, 0 failures, 0 skipped
 テスト対象がyamlファイルの内容なので、先の結果とは違い、`YAML content`のオブジェクトの値がどのようになっているかと出力されます。そのため、出力結果を分かりやすくするように`control`ブロックでまとめる必要がでてきます。
 
 # まとめ
-InspecのOSSであるCINCについて、GCP上に構築したシステムをテストしながら説明をしました。
+InspecのOSSであるCINCについて、GCP上に構築したシステムをテストしながら説明をしました。実行内容のすべての実行方法は、リポジトリの[cloudbuildディレクトリのcloudbuild.yaml](https://github.com/AtsushiKitano/cinc-test-sample/blob/master/cloudbuild/cloudbuild.yaml)を参照してください。
 Inspecは設定項目すべてをテストするメソッドを揃えていませんが、SDKを使いながら項目のテストをすることができます。
 また、OSSであるため、案件でライセンス購入をせずともInSpecの活用ができます。
 以上より、CINCを使うことでソフトウェアのようにインフラにもテストを導入することができるので、活用を検討してみてください。
